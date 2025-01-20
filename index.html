@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YouTube Viewer</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f4f4f9;
+    }
+    #player-container {
+      width: 560px;
+      height: 315px;
+    }
+  </style>
+</head>
+<body>
+    <P>
+        Video đang được giám sát cấm tua tới <br>
+        Không được chuyển trang vì chuyển trang sẽ xem lại đừ đầu<br>
+        Sau khi xem xong thì chụp màn hình<br>
+        Lưu ý hệ thống có giám sát thời gian truy cập và thời gian xem,<br>
+        Các hành vi treo máy sẽ bị reset lại từ đầu
+    </P>
+  <div id="player-container">
+    <iframe id="youtube-player" 
+            width="560" 
+            height="315" 
+            src="https://www.youtube.com/embed/bByOtuF2-cg?enablejsapi=1&autoplay=1" 
+            frameborder="0" 
+            allow="autoplay; encrypted-media" 
+            allowfullscreen>
+    </iframe>
+  </div>
+
+  <script>
+    let player;
+    let lastValidTime = 0; // Lưu thời gian phát hợp lệ gần nhất
+
+    // YouTube IFrame API
+    function onYouTubeIframeAPIReady() {
+      player = new YT.Player('youtube-player', {
+        events: {
+          'onStateChange': onPlayerStateChange,
+          'onReady': onPlayerReady
+        }
+      });
+    }
+
+    // Khi video sẵn sàng
+    function onPlayerReady(event) {
+      setInterval(() => {
+        const currentTime = player.getCurrentTime();
+        if (currentTime > lastValidTime + 2) { // Nếu tua tới trước quá 2 giây
+          player.seekTo(lastValidTime);
+        } else {
+          lastValidTime = currentTime; // Cập nhật thời gian hợp lệ
+        }
+      }, 1000); // Kiểm tra mỗi giây
+    }
+
+    // Khi trạng thái video thay đổi
+    function onPlayerStateChange(event) {
+      if (event.data === YT.PlayerState.ENDED) {
+        console.log("Video đã kết thúc");
+      }
+    }
+
+    // Ngăn chặn phím tua nhanh
+    document.addEventListener('keydown', (e) => {
+      const forbiddenKeys = ['ArrowRight', 'ArrowLeft', 'L', 'J']; // Các phím tua
+      if (forbiddenKeys.includes(e.key)) {
+        e.preventDefault();
+        alert("Không được phép tua video!");
+      }
+    });
+
+    // Ngăn chặn sử dụng chuột trên thanh trượt
+    document.addEventListener('mouseup', () => {
+      const currentTime = player.getCurrentTime();
+      if (currentTime > lastValidTime + 2) {
+        player.seekTo(lastValidTime);
+      }
+    });
+
+    // Tải YouTube API
+    const tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    const firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+  </script>
+</body>
+</html>
